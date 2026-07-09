@@ -4,6 +4,7 @@ import {
   IsEmail,
   IsInt,
   IsNumber,
+  IsOptional,
   IsString,
   IsUUID,
   Min,
@@ -21,9 +22,11 @@ class TicketDto {
   readonly daytime: string;
 
   @IsString()
+  @IsOptional()
   readonly day: string;
 
   @IsString()
+  @IsOptional()
   readonly time: string;
 
   @IsInt()
