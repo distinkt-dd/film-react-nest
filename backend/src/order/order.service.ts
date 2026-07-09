@@ -3,8 +3,8 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { randomUUID } from 'node:crypto';
 import { FilmsRepository } from 'src/repository/films.repository';
-import { v4 } from 'uuid';
 import { CreateOrderDto } from './dto/order.dto';
 
 @Injectable()
@@ -41,7 +41,7 @@ export class OrderService {
 
       results.push({
         ...ticket,
-        id: v4(),
+        id: randomUUID(),
       });
     }
 
