@@ -7,11 +7,17 @@ export class FilmsService {
   async findAll() {
     const films = await this.filmsRepository.findAll();
 
-    const items = films.map((film) => {
-      const { _id, schedule, ...other } = film;
-
-      return other;
-    });
+    const items = films.map((film) => ({
+      id: film.id,
+      title: film.title,
+      rating: film.rating,
+      director: film.director,
+      tags: film.tags,
+      image: film.image,
+      cover: film.cover,
+      about: film.about,
+      description: film.description,
+    }));
 
     return {
       total: items.length,
