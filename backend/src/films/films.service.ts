@@ -6,9 +6,16 @@ export class FilmsService {
   constructor(private readonly filmsRepository: FilmsRepository) {}
   async findAll() {
     const films = await this.filmsRepository.findAll();
+
+    const items = films.map((film) => {
+      const { _id, schedule, ...other } = film;
+
+      return other;
+    });
+
     return {
-      total: films.length,
-      items: films,
+      total: items.length,
+      items,
     };
   }
 

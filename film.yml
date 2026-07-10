@@ -1,10 +1,10 @@
 openapi: 3.0.0
 servers:
   - description: Yandex.Practicum Stub API
-    url: https://stub.practicum-team.ru/api/afisha
+    url: http://localhost:3000/api/afisha
 info:
   description: Yandex Practicum «Film!» project api
-  version: "1.0.0"
+  version: '1.0.0'
   title: Afisha Api
   contact:
     email: aleksei-mart@yandex-team.ru
@@ -188,10 +188,10 @@ components:
           type: number
           example: 350
         taken:
-            type: array
-            items:
-              type: string
-              example: '1:2'
+          type: array
+          items:
+            type: string
+            example: '1:2'
     Ticket:
       type: object
       properties:
