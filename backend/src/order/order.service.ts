@@ -5,23 +5,27 @@ import {
 } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { FilmsRepository } from 'src/repository/films.repository';
+import { ScheduleRepository } from 'src/repository/schedule.repository';
 import { CreateOrderDto } from './dto/order.dto';
 
 @Injectable()
 export class OrderService {
-  constructor(private readonly filmsRepository: FilmsRepository) {}
+  constructor(
+    private readonly scheduleRepository: ScheduleRepository,
+    private readonly filmRepository: FilmsRepository,
+  ) {}
 
   async createOrder(dto: CreateOrderDto) {
     const results = [];
 
     for (const ticket of dto.tickets) {
-      const film = await this.filmsRepository.findById(ticket.film);
+      const film = await this.filmRepository.findById(ticket.film);
 
       if (!film) {
         throw new NotFoundException(`Фильм с id ${ticket.film} не найден!`);
       }
 
-      const session = film.schedule.find((s) => s.id === ticket.session);
+      const session = film.schedules.find((s) => s.id === ticket.session);
       if (!session)
         throw new NotFoundException(`Сеанс ${ticket.session} не найден`);
 
@@ -33,7 +37,7 @@ export class OrderService {
         );
       }
 
-      await this.filmsRepository.addTakenSeat(
+      await this.scheduleRepository.addTakenSeat(
         ticket.film,
         ticket.session,
         seatKey,
