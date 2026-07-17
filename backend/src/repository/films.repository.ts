@@ -1,32 +1,27 @@
-import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { Film } from 'src/films/schemas/film.schema';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Film } from 'src/films/entities/film.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class FilmsRepository {
   constructor(
-    @InjectModel(Film.name) private readonly filmModel: Model<Film>,
+    @InjectRepository(Film) private filmRepository: Repository<Film>,
   ) {}
 
   async findAll() {
-    return await this.filmModel.find().lean().exec();
+    return await this.filmRepository.find();
   }
 
   async findById(id: string) {
-    return await this.filmModel.findOne({ id }).lean().exec();
-  }
+    const film = await this.filmRepository.findOne({
+      where: { id },
+      relations: ['schedules'],
+    });
 
-  async addTakenSeat(
-    filmId: string,
-    sessionId: string,
-    seatKey: string,
-  ): Promise<void> {
-    await this.filmModel
-      .findOneAndUpdate(
-        { id: filmId, 'schedule.id': sessionId },
-        { $push: { 'schedule.$.taken': seatKey } },
-      )
-      .exec();
+    if (!film) {
+      throw new NotFoundException('Фильм не найден!');
+    }
+    return film;
   }
 }

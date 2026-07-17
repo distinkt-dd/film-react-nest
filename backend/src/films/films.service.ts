@@ -27,12 +27,10 @@ export class FilmsService {
 
   async findById(id: string) {
     const film = await this.filmsRepository.findById(id);
-    if (!film) {
-      throw new NotFoundException('Фильм не найден!');
-    }
+    
     return {
-      total: film.schedule.length,
-      items: film.schedule,
+      total: film.schedules.length,
+      items: film.schedules,
     };
   }
 }
