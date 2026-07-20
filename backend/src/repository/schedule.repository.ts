@@ -1,7 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Schedule } from 'src/films/entities/schedule.entity';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 
 @Injectable()
 export class ScheduleRepository {
@@ -10,36 +14,26 @@ export class ScheduleRepository {
     private scheduleRepository: Repository<Schedule>,
   ) {}
 
-  private async findScheduleByFilmIdAndSessionId(
-    filmId: string,
-    sessionId: string,
-  ) {
-    const schedule = await this.scheduleRepository.findOne({
-      where: {
-        film: { id: filmId },
-        id: sessionId,
-      },
-    });
-
-    if (!schedule) {
-      throw new NotFoundException('Не найдено расписание!');
-    }
-
-    return schedule;
-  }
-
   async addTakenSeat(
-    filmId: string,
+    manager: EntityManager,
     sessionId: string,
     seatKey: string,
   ): Promise<void> {
-    const schedule = await this.findScheduleByFilmIdAndSessionId(
-      filmId,
-      sessionId,
-    );
-    const takens = schedule.taken;
-    takens.push(seatKey);
+    const schedule = await manager
+      .createQueryBuilder(Schedule, 'schedule')
+      .setLock('pessimistic_write')
+      .where('schedule.id = :sessionId', { sessionId })
+      .getOne();
 
-    await this.scheduleRepository.update(sessionId, { taken: takens });
+    if (!schedule) {
+      throw new NotFoundException('Расписание не найдено');
+    }
+
+    if (schedule.taken.includes(seatKey)) {
+      throw new ConflictException(`Место ${seatKey} уже занято`);
+    }
+
+    schedule.taken.push(seatKey);
+    await manager.save(schedule);
   }
 }

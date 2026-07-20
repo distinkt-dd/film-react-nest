@@ -1,4 +1,5 @@
 import { ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import 'dotenv/config';
@@ -10,9 +11,30 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   app.setGlobalPrefix('api/afisha');
-  app.enableCors();
+
+  const configService = app.get(ConfigService);
+
+  const corsOrigin = configService
+    .getOrThrow<string>('CORS_ORIGIN')
+    ?.split(',');
+
+  const corsMethods = configService
+    .getOrThrow<string>('CORS_METHODS')
+    ?.split(',');
+
+  const corsCredentials =
+    configService.get<boolean>('CORS_CREDENTIALS') ?? false;
+
+  app.enableCors({
+    origin: corsOrigin,
+    methods: corsMethods,
+    credentials: corsCredentials,
+  });
   app.useStaticAssets(join(process.cwd(), 'public'));
   app.useGlobalFilters(new HttpExceptionFilter());
-  await app.listen(3000);
+
+  const port = configService.getOrThrow<number>('APP_PORT');
+
+  await app.listen(port);
 }
 bootstrap();
