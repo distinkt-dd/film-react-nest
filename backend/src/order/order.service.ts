@@ -1,57 +1,52 @@
-import {
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
-import { randomUUID } from 'node:crypto';
-import { FilmsRepository } from 'src/repository/films.repository';
+import { ConflictException, Injectable } from '@nestjs/common';
+import { InjectEntityManager } from '@nestjs/typeorm';
+import { randomUUID } from 'crypto';
 import { ScheduleRepository } from 'src/repository/schedule.repository';
+import { EntityManager } from 'typeorm';
 import { CreateOrderDto } from './dto/order.dto';
 
 @Injectable()
 export class OrderService {
   constructor(
     private readonly scheduleRepository: ScheduleRepository,
-    private readonly filmRepository: FilmsRepository,
+    @InjectEntityManager() private readonly entityManager: EntityManager,
   ) {}
 
   async createOrder(dto: CreateOrderDto) {
-    const results = [];
-
+    const seen = new Set<string>();
     for (const ticket of dto.tickets) {
-      const film = await this.filmRepository.findById(ticket.film);
-
-      if (!film) {
-        throw new NotFoundException(`Фильм с id ${ticket.film} не найден!`);
-      }
-
-      const session = film.schedules.find((s) => s.id === ticket.session);
-      if (!session)
-        throw new NotFoundException(`Сеанс ${ticket.session} не найден`);
-
-      const seatKey = `${ticket.row}:${ticket.seat}`;
-
-      if (session.taken.includes(seatKey)) {
+      const key = `${ticket.session}|${ticket.row}:${ticket.seat}`;
+      if (seen.has(key)) {
         throw new ConflictException(
-          `Ряд ${ticket.row}, место: ${ticket.seat} уже заянто`,
+          `Дубликат места: ряд ${ticket.row}, место ${ticket.seat} для сеанса ${ticket.session}`,
         );
       }
-
-      await this.scheduleRepository.addTakenSeat(
-        ticket.film,
-        ticket.session,
-        seatKey,
-      );
-
-      results.push({
-        ...ticket,
-        id: randomUUID(),
-      });
+      seen.add(key);
     }
 
-    return {
-      total: results.length,
-      items: results,
-    };
+    return await this.entityManager.transaction(
+      async (transactionalEntityManager) => {
+        const results = [];
+
+        for (const ticket of dto.tickets) {
+          const seatKey = `${ticket.row}:${ticket.seat}`;
+          await this.scheduleRepository.addTakenSeat(
+            transactionalEntityManager,
+            ticket.session,
+            seatKey,
+          );
+
+          results.push({
+            ...ticket,
+            id: randomUUID(),
+          });
+        }
+
+        return {
+          total: results.length,
+          items: results,
+        };
+      },
+    );
   }
 }
