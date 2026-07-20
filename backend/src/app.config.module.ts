@@ -1,4 +1,5 @@
-import { Module, Global } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { configProvider } from './app.config.provider';
 import { TypeormModule } from './typeorm/typeorm.module';
 
