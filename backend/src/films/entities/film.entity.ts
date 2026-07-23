@@ -4,32 +4,32 @@ import { Schedule } from './schedule.entity';
 @Entity('films')
 export class Film {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column()
-  title: string;
+  title!: string;
 
   @Column({ type: 'double precision' })
-  rating: number;
+  rating!: number;
 
   @Column()
-  director: string;
+  director!: string;
 
   @Column('text', { array: true })
-  tags: string[];
+  tags!: string[];
 
   @Column()
-  image: string;
+  image!: string;
 
   @Column()
-  cover: string;
+  cover!: string;
 
   @Column()
-  about: string;
+  about!: string;
 
   @Column()
-  description: string;
+  description!: string;
 
   @OneToMany(() => Schedule, (schedule) => schedule.film)
-  schedules: Schedule[];
+  schedules!: Schedule[];
 }
