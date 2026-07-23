@@ -5,9 +5,13 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/error.filter';
+import { TskvLogger } from './common/logger/tskv.logger';
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    bufferLogs: true,
+  });
+
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   app.setGlobalPrefix('api/afisha');
 
@@ -31,6 +35,8 @@ async function bootstrap() {
   });
   app.useStaticAssets(join(process.cwd(), 'public'));
   app.useGlobalFilters(new HttpExceptionFilter());
+
+  app.useLogger(new TskvLogger());
 
   const port = configService.getOrThrow<number>('APP_PORT');
 

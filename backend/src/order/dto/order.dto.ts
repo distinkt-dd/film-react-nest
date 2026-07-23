@@ -11,7 +11,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 
-class TicketDto {
+export class TicketDto {
   @IsUUID()
   readonly film: string;
 

@@ -9,7 +9,7 @@ export class Film {
   @Column()
   title: string;
 
-  @Column()
+  @Column({ type: 'double precision' })
   rating: number;
 
   @Column()
