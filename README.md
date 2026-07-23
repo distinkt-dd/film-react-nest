@@ -50,3 +50,9 @@ PostgreSQL должна быть установлена и запущена.
 
 Для проверки отправьте тестовый запрос с помощью Postman или `curl`.
 Файлы с тестовыми запросами находяться по пути `./backend/test/***.sql`
+
+## Деплой
+
+- **Frontend**: [https://films-project.nomorepartiessite.ru/](https://films-project.nomorepartiessite.ru/)
+- **Backend API**: [http://130.193.40.91:3000/api/afisha](http://130.193.40.91:3000/api/afisha)
+- **PgAdmin**: [http://130.193.40.91:8080](http://130.193.40.91:8080)

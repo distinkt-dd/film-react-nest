@@ -1,8 +1,7 @@
-version: '3.8'
-
 services:
   database:
     image: postgres:16.4
+    restart: always
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -34,6 +33,7 @@ services:
 
   frontend:
     image: ghcr.io/${DOCKER_HUB_OWNER}/yp_frontend:latest
+    restart: always
     environment:
       VITE_API_URL: /api/afisha
       VITE_CDN_URL: /content/afisha
@@ -42,6 +42,7 @@ services:
 
   backend:
     image: 'ghcr.io/${DOCKER_HUB_OWNER}/yp_backend:latest'
+    restart: always
     environment:
       APP_PORT: ${APP_PORT}
       DEBUG: ${DEBUG}
@@ -61,6 +62,7 @@ services:
 
   server:
     image: ghcr.io/${DOCKER_HUB_OWNER}/yp_server:latest
+    restart: always
     ports:
       - '81:80'
     volumes:
