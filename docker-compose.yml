@@ -1,17 +1,86 @@
 version: '3.8'
 
 services:
-  pg:
-    image: postgres:16
-    container_name: postgres_container
+  database:
+    image: postgres:16.4
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: films
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
     volumes:
-      - pg-data:/var/lib/postgresql/data
+      - db_data:/var/lib/postgresql/data
+      - ./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
     ports:
-      - '5432:5432'
+      - '5423:5432'
+    networks:
+      - internal
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin4_container
+    restart: always
+    ports:
+      - '8080:80'
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    networks:
+      - internal
+
+  frontend:
+    image: ghcr.io/${DOCKER_HUB_OWNER}/yp_frontend:latest
+    build:
+      context: frontend
+    environment:
+      VITE_API_URL: /api/afisha
+      VITE_CDN_URL: /content/afisha
+    volumes:
+      - frontend_build:/app/dist
+
+  backend:
+    image: 'ghcr.io/${DOCKER_HUB_OWNER}/yp_backend:latest'
+    build:
+      context: backend
+    environment:
+      APP_PORT: ${APP_PORT}
+      DEBUG: ${DEBUG}
+      DATABASE_DRIVER: ${DATABASE_DRIVER}
+      DATABASE_URL: ${DATABASE_URL}
+      DATABASE_USERNAME: ${DATABASE_USERNAME}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      CORS_ORIGIN: ${CORS_ORIGIN}
+      CORS_METHODS: ${CORS_METHODS}
+      CORS_CREDENTIALS: ${CORS_CREDENTIALS}
+    ports:
+      - '3000:3000'
+    networks:
+      - internal
+    depends_on:
+      - database
+
+  server:
+    image: ghcr.io/${DOCKER_HUB_OWNER}/yp_server:latest
+    build:
+      context: nginx
+    ports:
+      - '80:80'
+    volumes:
+      - frontend_build:/var/www
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - internal
 
 volumes:
-  pg-data:
+  db_data:
+  pgadmin-data:
+  frontend_build:
+
+networks:
+  internal:
